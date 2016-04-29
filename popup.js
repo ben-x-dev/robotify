@@ -1,6 +1,6 @@
 function getCurrentTabUrl() {
-  chrome.tabs.getCurrent(function(tab) {console.log(tab);
-    renderStatus(tab.url);
+  chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
+    console.log(tabs[0].url);
   });
 }
 
