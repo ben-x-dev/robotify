@@ -1,25 +1,22 @@
-function getCurrentTabUrl() {
+
+function getDOM() {
   chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
     console.log(tabs[0].url);
-  });
-}
 
-function renderStatus(statusText) {
-  $('#status').textContent = statusText;
+    var bg = chrome.extension.getBackgroundPage();
+
+    bg.getDOM(tabs[0], function(data) {
+      console.log(data);
+    });
+  });
 }
 
 function bindActions() {
-  var scanBtn = document.getElementById('scan');
-  scanBtn.click(function() {console.log('here....');
-    getCurrentTabUrl();
+  $('#scan').click(function() {
+    getDOM();
   });
-  // $('#detect').click(function() {
-  //   getCurrentTabUrl();
-  // });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   bindActions();
-  getCurrentTabUrl();
-  console.log('check here....');
 });
