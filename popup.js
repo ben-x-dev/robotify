@@ -9,12 +9,13 @@ function renderStatus(statusText) {
 }
 
 function bindActions() {
-  $('#scan').click(function() {console.log('here....');
+  var scanBtn = document.getElementById('scan');
+  scanBtn.click(function() {console.log('here....');
     getCurrentTabUrl();
   });
-  $('#detect').click(function() {
-    getCurrentTabUrl();
-  });
+  // $('#detect').click(function() {
+  //   getCurrentTabUrl();
+  // });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
