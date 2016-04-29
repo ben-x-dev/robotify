@@ -16,30 +16,38 @@ var whitelistedStyles = [
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if (request.message === "getDOM") {
-      var contents = document.body;
+      var contents = document.getElementById('main');
       console.log(contents);
-      // Do something with DOM object here
-      var text = loopThroughDOM(contents);
+
+      var text = '${main}    Execute Javascript    return document.getElementById("main")\n\n';
+      text += loopThroughDOM(contents, '${main}');
+
       // Acknowledge request
       sendResponse(text);
     }
   }
 );
 
-function getAssertAttributes(element) {
+function getAssertAttributes(element, parent) {
   var text = '';
   if (element.attributes.length == 0) {
     return text;
   }
 
-  if (element.attributes.hasOwnProperty('class')) {
-    text += 'class = ' + element.attributes.class.value + ', ';
-  }
-  if (element.attributes.hasOwnProperty('id')) {
-    text += 'id = ' + element.attributes.id.value + ', ';
+  var selector = '';
+  for (var i = 0; i < element.attributes.length; i++) {
+    var attr = element.attributes[i];
+    if (i == 0) {
+      selector = '[' + attr.name + '="' + attr.value + '"]';
+    }
+    text += '${attribValue}    Get Element Attribute    css=' + parent + ' ' + selector + '@' + attr.name + '\n';
+    text += 'Should Be Equal    ${attribValue}    ' + attr.value + '\n\n';
   }
 
-  return text;
+  return {
+    selector: parent + ' ' + selector,
+    text: text
+  };
 }
 
 function getAssertStyles(element) {
@@ -51,13 +59,13 @@ function getAssertStyles(element) {
 
   for (var i = 0; i < whitelistedStyles.length; i++) {
     var style = whitelistedStyles[i];
-    text += style + ' : ' + styles[style] + ', ';
+    text += style + ' : ' + styles[style] + '\n';
   }
 
   return text;
 }
 
-function loopThroughDOM(element) {
+function loopThroughDOM(element, parent) {
   var text = '';
 
   // exclude blacklisted tags ...
@@ -65,12 +73,16 @@ function loopThroughDOM(element) {
     return text;
   }
 
-  text += getAssertAttributes(element);
-  text += getAssertStyles(element);
+  var attr = getAssertAttributes(element, parent);
+  if (attr.text !== '') {
+    text += attr.text;
+    // text += getAssertStyles(element);
+  }
+
 
   for (var i = 0; i < element.children.length; i++) {
     var child = element.children[i];
-    text += loopThroughDOM(child);
+    text += loopThroughDOM(child, attr.selector);
   }
 
   return text;
