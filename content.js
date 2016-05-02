@@ -20,13 +20,12 @@ chrome.runtime.onMessage.addListener(
       console.log(contents);
 
       var text = "Set Suite Variable    ${main}    css=[id='main'] \n" +
-                 "   @{elements}    Create List    ${main}\n\n";
+                 "   @{elements}    Create List    ${main}\n";
 
       text += loopThroughDOM(contents, '${main}', false);
 
       text += '\n:   FOR    ${element}    IN    @{elements}\n' +
-              '\\       Run And Wait Until Keyword Succeeds    Element Should Be Visible    ${main}\n' +
-              '\\       ${elementVisibility}   Run Keyword And Return Status    Element Should Be Visible    ${main}\n';
+              '\\       Run And Wait Until Keyword Succeeds    Element Should Be Visible    ${element}\n';
 
       // Acknowledge request
       sendResponse(text);
@@ -52,7 +51,7 @@ function getAssertAttributes(element, parent) {
   // }
   var attr = element.attributes[0];
   var selector = parent + ' [' + attr.name + '="' + attr.value + '"]';
-  text += '   Append To List    ${elements}    ' + selector + '\n';
+  text += '...    ' + selector + '\n';
 
   return {
     selector: selector,
