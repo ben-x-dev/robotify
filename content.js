@@ -1,4 +1,6 @@
 var blacklistedTags = ['SCRIPT', 'NOSCRIPT'];
+var blacklistedAttributes = ['xmlns'];
+
 var whitelistedStyles = [
   'fontFamily',
   'fontSize',
@@ -19,13 +21,13 @@ chrome.runtime.onMessage.addListener(
       var contents = document.getElementById('main');
       console.log(contents);
 
-      var text = "Set Suite Variable    ${main}    css=[id='main'] \n" +
-                 "   @{elements} = Create List    ${main}\n";
+      var text = "    Set Suite Variable     ${main}    css=div[id='main']\n" +
+                 "    @{elements}    Create List\n";
 
       text += loopThroughDOM(contents, '${main}', false);
 
-      text += '\n:   FOR    ${element}    IN    @{elements}\n' +
-              '\\       Run And Wait Until Keyword Succeeds    Element Should Be Visible    ${element}\n';
+      text += '\n    :FOR    ${element}    IN    @{elements}\n' +
+              '    \\    Element Should Be Visible    ${element}\n';
 
       // Acknowledge request
       sendResponse(text);
@@ -40,8 +42,16 @@ function getAssertAttributes(element, parent) {
   }
 
   var attr = element.attributes[0];
-  var selector = parent + ' [' + attr.name + '="' + attr.value + '"]';
-  text += '...    ' + selector + '\n';
+  if (blacklistedAttributes.indexOf(attr.name) > -1) {
+    if (element.attributes[1]) {
+      attr = element.attributes[1];
+    } else {
+      return {};
+    }
+  }
+
+  var selector = parent + ' ' + element.tagName.toLowerCase() + '[' + attr.name + '="' + attr.value + '"]';
+  text += '    ...    ' + selector + '\n';
 
   return {
     selector: selector,
@@ -68,7 +78,8 @@ function loopThroughDOM(element, parent, append) {
   var text = '';
 
   // exclude blacklisted tags ...
-  if (blacklistedTags.indexOf(element.tagName) > -1) {
+  if (blacklistedTags.indexOf(element.tagName) > -1 ||
+    !(element.offsetWidth > 0 && element.offsetHeight > 0)) {
     return text;
   }
 
