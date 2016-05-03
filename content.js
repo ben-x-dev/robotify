@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener(
       console.log(contents);
 
       var text = "Set Suite Variable    ${main}    css=[id='main'] \n" +
-                 "   @{elements}    Create List    ${main}\n";
+                 "   @{elements} = Create List    ${main}\n";
 
       text += loopThroughDOM(contents, '${main}', false);
 
@@ -39,16 +39,6 @@ function getAssertAttributes(element, parent) {
     return {};
   }
 
-  // var selector = '';
-  // for (var i = 0; i < element.attributes.length; i++) {
-  //   var attr = element.attributes[i];
-  //   text += '${attribValue}    Get Element Attribute    css=' + parent +  + '@' + attr.name + '\n';
-  //   text += 'Should Be Equal    ${attribValue}    ' + attr.value + '\n\n';
-
-  //   if (i == 0) {
-  //     selector = '[' + attr.name + '="' + attr.value + '"]';
-  //   }
-  // }
   var attr = element.attributes[0];
   var selector = parent + ' [' + attr.name + '="' + attr.value + '"]';
   text += '...    ' + selector + '\n';
@@ -83,18 +73,27 @@ function loopThroughDOM(element, parent, append) {
   }
 
   var selector = parent;
+  var attr = {};
   if (append) {
-    var attr = getAssertAttributes(element, parent);
+    attr = getAssertAttributes(element, parent);
     if (attr.selector && attr.text) {
       selector = attr.selector;
-      text += attr.text;
       // text += getAssertStyles(element);
     }
   }
 
+  var currentText = '', previousText = '';
   for (var i = 0; i < element.children.length; i++) {
     var child = element.children[i];
-    text += loopThroughDOM(child, selector, true);
+    currentText = loopThroughDOM(child, selector, true);
+    if (currentText != previousText) {
+      text += currentText;
+    }
+    previousText = currentText;
+  }
+
+  if (text === '' && attr.text) {
+    text += attr.text;
   }
 
   return text;
